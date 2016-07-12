@@ -2,8 +2,9 @@
   "name": "spellcheck",
   "displayName": "Spelling Checker (RU,EN)",
   "description": "",
-  "version": "0.0.1",
-  "publisher": "spellchecker",
+  "icon":"images/icon1.png",
+  "version": "0.1.0",
+  "publisher": "JuliaBay",
   "engines": {
     "vscode": "^1.0.0"
   },
