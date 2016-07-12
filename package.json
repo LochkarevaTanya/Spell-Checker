@@ -1,0 +1,35 @@
+{
+  "name": "spellcheck",
+  "displayName": "Spelling Checker (RU,EN)",
+  "description": "",
+  "version": "0.0.1",
+  "publisher": "spellchecker",
+  "engines": {
+    "vscode": "^1.0.0"
+  },
+  "categories": [
+    "Other","Linters"
+  ],
+  "activationEvents": [
+    "onCommand:extension.sayHello"
+  ],
+  "main": "./extension",
+  "contributes": {
+    "commands": [
+      {
+        "command": "extension.sayHello",
+        "title": "Spelling Checker (RU,EN)",
+        "key": "Alt,L"
+      }
+    ]
+  },
+  "scripts": {
+    "postinstall": "node ./node_modules/vscode/bin/install"
+  },
+  "devDependencies": {
+    "vscode": "^0.11.0"
+  },
+  "dependencies": {
+    "yandex-speller": "^1.0.0"
+  }
+}
