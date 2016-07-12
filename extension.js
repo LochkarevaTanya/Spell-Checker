@@ -3,12 +3,34 @@
 var vscode = require('vscode');
 var yaspeller = require('yandex-speller');
 var fs = require('fs');
+
 var settings;
 var CONFIGFILE =  vscode.workspace.rootPath + "/.vscode/spell.json";
-var spellingErrors = vscode.languages.createDiagnosticCollection("Spelling");
+
+function activate(context) {
+    settings = readSettings();
+    //updateSettings();
+    var disposable = vscode.commands.registerCommand('extension.sayHello', function () {
+        
+        var editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            return; 
+        }
+        var text = editor.document;
+     
+        createDiagnostic(text,settings);
+    });
+    context.subscriptions.push(disposable);
+}
+exports.activate = activate;
+
+function deactivate() {
+}
+exports.deactivate = deactivate;
 
 function createDiagnostic(text,settings)
 {
+        var spellingErrors = vscode.languages.createDiagnosticCollection("Spelling");
         var diagnostics = new Array();
         yaspeller.checkText(text.getText(), function(err, docProblems){
             if (docProblems != null) {
@@ -31,29 +53,6 @@ function createDiagnostic(text,settings)
                     }       
         }, {lang: settings.language});
 }
-
-function activate(context) {
-    settings = readSettings();
-
-    var disposable = vscode.commands.registerCommand('extension.sayHello', function () {
-        
-        //updateSettings(settings);
-        var editor = vscode.window.activeTextEditor;
-        if (!editor) {
-            return; 
-        }
-        var text = editor.document;
-        //updateSettings();
-        createDiagnostic(text,settings);
-    });
-    context.subscriptions.push(disposable);
-}
-exports.activate = activate;
-
-function deactivate() {
-}
-exports.deactivate = deactivate;
-
 function readSettings() {
     var cfg = readJsonFile(CONFIGFILE);
     function readJsonFile(file) {
@@ -63,7 +62,7 @@ function readSettings() {
         catch (err) {
             cfg = JSON.parse('{\
                                 "version": "0.1.0", \
-                                "language": ["ru","en"], \
+                                "language": "ru", \
                                 "ignoreWordsList": [], \
                                 "languageIDs": ["markdown","text"],\
                                 "ignoreRegExp": []\
