@@ -13,6 +13,10 @@
   "activationEvents": [
     "onCommand:extension.sayHello"
   ],
+  "repository": {
+		"type": "git",
+		"url": "https://github.com/JuliaBay/Spell-Cheker.git"
+	},
   "main": "./extension",
   "contributes": {
  "commands": [
