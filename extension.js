@@ -10,7 +10,7 @@ var CONFIGFILE =  vscode.workspace.rootPath + "/.vscode/spell.json";
 function activate(context) {
     settings = readSettings();
     //updateSettings();
-    var disposable = vscode.commands.registerCommand('extension.sayHello', function () {
+    var disposable = vscode.commands.registerCommand('extension.checkText', function () {
         
         var editor = vscode.window.activeTextEditor;
         if (!editor) {

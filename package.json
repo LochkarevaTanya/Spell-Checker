@@ -11,7 +11,7 @@
     "Other","Linters"
   ],
   "activationEvents": [
-    "onCommand:extension.sayHello"
+    "onCommand:extension.checkText"
   ],
   "repository": {
 		"type": "git",
@@ -21,13 +21,13 @@
   "contributes": {
  "commands": [
       {
-        "command": "extension.sayHello",
+        "command": "extension.checkText",
         "title": "Spelling Checker (RU,EN)"
       }
     ],
     "keybindings": [
       {
-        "command": "extension.sayHello",
+        "command": "extension.checkText",
         "key": "Alt+Shift+A"
       }
     ]
