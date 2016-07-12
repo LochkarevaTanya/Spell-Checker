@@ -62,7 +62,7 @@ function readSettings() {
         catch (err) {
             cfg = JSON.parse('{\
                                 "version": "0.1.0", \
-                                "language": "ru", \
+                                "language": ["ru","en"], \
                                 "ignoreWordsList": [], \
                                 "languageIDs": ["markdown","text"],\
                                 "ignoreRegExp": []\
