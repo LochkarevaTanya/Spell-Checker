@@ -15,11 +15,16 @@
   ],
   "main": "./extension",
   "contributes": {
-    "commands": [
+ "commands": [
       {
         "command": "extension.sayHello",
-        "title": "Spelling Checker (RU,EN)",
-        "key": "Alt,L"
+        "title": "Spelling Checker (RU,EN)"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "extension.sayHello",
+        "key": "Alt+Shift+A"
       }
     ]
   },
