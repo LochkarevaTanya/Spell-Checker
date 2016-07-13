@@ -39,7 +39,7 @@
       },
       {
         "command": "Spell.suggestionsFix",
-				"key": "Alt+."
+				"key": "Alt+Shift+S"
       }
     ]
   },

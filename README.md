@@ -4,7 +4,7 @@
 
 ## Functionality
 
-Load up a Markdown file [or additional file types you have configured in the config file] and get highlights and hovers for issues.
+Load up a Markdown file or additional file types you have configured in the config file and get highlights and hovers for issues.
 
 Checking will occur as you call the command by hitting `Alt+Shift+A` or you may hit `F1` and type 'Spelling Checker' and choose this extension.
 

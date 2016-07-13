@@ -20,11 +20,8 @@ function activate(context) {
     var disposable1 = vscode.commands.registerCommand('Spell.suggestionsFix', function () {
         suggestFix();
     });
-    //vscode.commands.registerCommand('extension.checkText', createDiagnostic());
     context.subscriptions.push(disposable);
-    context.subscriptions.push(disposable1);
-    //vscode.commands.registerCommand('Spell.suggestFix', suggestFix());
-    
+    context.subscriptions.push(disposable1);  
 }
 exports.activate = activate;
 
@@ -73,7 +70,7 @@ function createDiagnostic(document)
         problems = [];
 
         if (settings.languageIDs.indexOf(document.languageId) !== -1) {
-        spellcheckDocument(docToCheck, function (problems) {
+            spellcheckDocument(docToCheck, function (problems) {
             for (var x = 0; x < problems.length; x++) {
                 var problem = problems[x];
                 var lineRange = new vscode.Range(problem.startLine, problem.startChar, problem.endLine, problem.endChar);
@@ -99,7 +96,8 @@ function suggestFix() {
     var problem = problems.filter(function (obj) {
             return obj.error === word;
         });
-
+          
+    items.push({lable: "IGNORE LIST" , decription:"Add [" + word + "] to ignore list"});
     if (problem.length !== 0) {
             if (problem[0].suggestions.length > 0) {
             
@@ -113,8 +111,6 @@ function suggestFix() {
         } else {
             items.push({ label: null, description: "No suggestions available sorry..." });
         }
-    items.push({lable: "IGNORE LIST", decription:"Add [" + word + "] to ignore list"});
-
     var pr = vscode.window.showQuickPick(items);
     pr.then(function(selection) {
        if (selection.lable === "IGNORE LIST") {
