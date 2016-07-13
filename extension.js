@@ -91,7 +91,7 @@ function DeleteRegExp(rng) {
     //var per = Pattern[i];
     //var StartResult = limitingRange.compareBoundaryPoints;
     //var EndResult = Pattern[i].compareBoundaryPoints(Pattern[i].END_TO_END, rng);
-    }
+    //}
 }
 
 function GetPatterns(content) {
