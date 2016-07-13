@@ -3,13 +3,15 @@
 var vscode = require('vscode');
 var yaspeller = require('yandex-speller');
 var fs = require('fs');
-
+var path = require('path');
 var settings;
-var CONFIGFILE =  vscode.workspace.rootPath + "/.vscode/spell.json";
-
+var settingPath = "/.vscode/spell.json";
+var CONFIGFILE;
 function activate(context) {
+    CONFIGFILE = context.extensionPath + settingPath;
     settings = readSettings();
-    //updateSettings();
+
+    vscode.commands.registerCommand('Spell.suggestFix', suggestFix);
     var disposable = vscode.commands.registerCommand('extension.checkText', function () {
         
         var editor = vscode.window.activeTextEditor;
@@ -18,7 +20,7 @@ function activate(context) {
         }
         var text = editor.document;
      
-        createDiagnostic(text,settings);
+        createDiagnostic(text);
     });
     context.subscriptions.push(disposable);
 }
@@ -28,7 +30,7 @@ function deactivate() {
 }
 exports.deactivate = deactivate;
 
-function createDiagnostic(text,settings)
+function createDiagnostic(text)
 {
         var spellingErrors = vscode.languages.createDiagnosticCollection("Spelling");
         var diagnostics = new Array();
@@ -53,6 +55,18 @@ function createDiagnostic(text,settings)
                     }       
         }, {lang: settings.language});
 }
+function suggestFix() {
+    var items= new Array();
+    items.push({lable: "ADD TO IGNORE LIST", decription:"Add word to ignore list"});
+    vscode.window.showQuickPick(items,function (selection) {
+       if (selection.lable === "ADD TO IGNORE LIST") {
+            settings.ignoreWordsList.push(word);
+            updateSettings();
+            createDiagnostic(vscode.window.activeTextEditor.document);
+       }
+    });
+}
+
 function readSettings() {
     var cfg = readJsonFile(CONFIGFILE);
     function readJsonFile(file) {

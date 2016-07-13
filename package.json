@@ -9,18 +9,19 @@
     "vscode": "^1.0.0"
   },
   "categories": [
-    "Other","Linters"
+    "Other",
+    "Linters"
   ],
   "activationEvents": [
     "onCommand:extension.checkText"
   ],
   "repository": {
-		"type": "git",
-		"url": "https://github.com/JuliaBay/Spell-Cheker.git"
-	},
+    "type": "git",
+    "url": "https://github.com/JuliaBay/Spell-Cheker.git"
+  },
   "main": "./extension",
   "contributes": {
- "commands": [
+    "commands": [
       {
         "command": "extension.checkText",
         "title": "Spelling Checker (RU,EN)"
@@ -40,6 +41,7 @@
     "vscode": "^0.11.0"
   },
   "dependencies": {
+    "path": "^0.12.7",
     "yandex-speller": "^1.0.0"
   }
 }
