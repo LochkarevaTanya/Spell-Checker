@@ -4,25 +4,27 @@ var vscode = require('vscode');
 var yaspeller = require('yandex-speller');
 var fs = require('fs');
 var path = require('path');
+
 var settings;
 var settingPath = "/.vscode/spell.json";
 var CONFIGFILE;
+var problems = new Array();
+
 function activate(context) {
+
     CONFIGFILE = context.extensionPath + settingPath;
     settings = readSettings();
-
-    vscode.commands.registerCommand('Spell.suggestFix', suggestFix);
     var disposable = vscode.commands.registerCommand('extension.checkText', function () {
-        
-        var editor = vscode.window.activeTextEditor;
-        if (!editor) {
-            return; 
-        }
-        var text = editor.document;
-     
-        createDiagnostic(text);
+        createDiagnostic(vscode.window.activeTextEditor.document);
     });
+    var disposable1 = vscode.commands.registerCommand('Spell.suggestionsFix', function () {
+        suggestFix();
+    });
+    //vscode.commands.registerCommand('extension.checkText', createDiagnostic());
     context.subscriptions.push(disposable);
+    context.subscriptions.push(disposable1);
+    //vscode.commands.registerCommand('Spell.suggestFix', suggestFix());
+    
 }
 exports.activate = activate;
 
@@ -30,40 +32,102 @@ function deactivate() {
 }
 exports.deactivate = deactivate;
 
-function createDiagnostic(text)
-{
-        var spellingErrors = vscode.languages.createDiagnosticCollection("Spelling");
-        var diagnostics = new Array();
-        yaspeller.checkText(text.getText(), function(err, docProblems){
-            if (docProblems != null) {
-                for(var i=0; i<docProblems.length; i++){
+function spellcheckDocument(text,cb){
+   
+    yaspeller.checkText(text, function(err, docProblems){
+        if (docProblems != null) {
+            for(var i=0; i<docProblems.length; i++){
+                if (settings.ignoreWordsList.indexOf(docProblems[i].word) === -1) {
                     var problem = docProblems[i];
-                    
                     var activeEditor = vscode.window.activeTextEditor;
                     var startPos = activeEditor.document.positionAt(problem.pos);
                     var endPos = activeEditor.document.positionAt(problem.len + problem.pos);
                     var rng = new vscode.Range(startPos.line,startPos.character,endPos.line,endPos.character);
                     
-                    var loc = new vscode.Location(text.uri, rng);	
-                    var diag = new vscode.Diagnostic(rng,'Suggestion word: ' + problem.s[0],vscode.DiagnosticSeverity.Warning);
-                    diagnostics.push(diag);
-                };
-                spellingErrors.set(text.uri, diagnostics);
+                    problems.push({
+                        error: problem.word,
+                        startLine: startPos.line,
+                        startChar: startPos.character,
+                        endLine: endPos.line,
+                        endChar: endPos.character,
+                        message:  " [" + problem.word + "] - suggest [" + problem.s + "]",
+                        suggestions: problem.s
+                    });
+                }
             }
-            if (docProblems.length === 0){
-                    vscode.window.showInformationMessage("No errors");
-                    }       
-        }, {lang: settings.language});
+            cb(problems);
+        }
+        if (docProblems.length === 0){
+            vscode.window.showInformationMessage("No errors");
+        }      
+    }, {lang: settings.language});
+}
+
+
+function createDiagnostic(document)
+{
+        var spellingErrors = vscode.languages.createDiagnosticCollection("Spelling");
+        var diagnostics = new Array();
+        var docToCheck = document.getText();
+
+        problems = [];
+
+        if (settings.languageIDs.indexOf(document.languageId) !== -1) {
+        spellcheckDocument(docToCheck, function (problems) {
+            for (var x = 0; x < problems.length; x++) {
+                var problem = problems[x];
+                var lineRange = new vscode.Range(problem.startLine, problem.startChar, problem.endLine, problem.endChar);
+                var loc = new vscode.Location(document.uri, lineRange);
+
+                var diag = new vscode.Diagnostic(lineRange, problem.message, vscode.DiagnosticSeverity.Warning);
+                diagnostics.push(diag);
+            }
+            spellingErrors.set(document.uri, diagnostics);
+        });
+    }
+
+
 }
 function suggestFix() {
-    var items= new Array();
-    items.push({lable: "ADD TO IGNORE LIST", decription:"Add word to ignore list"});
-    vscode.window.showQuickPick(items,function (selection) {
-       if (selection.lable === "ADD TO IGNORE LIST") {
+    var items = new Array();
+    var e = vscode.window.activeTextEditor;
+    var d = e.document;
+    var sel = e.selection;
+    var wordRange = d.getWordRangeAtPosition(sel.active);
+    var word = d.getText(wordRange);
+
+    var problem = problems.filter(function (obj) {
+            return obj.error === word;
+        });
+
+    if (problem.length !== 0) {
+            if (problem[0].suggestions.length > 0) {
+            
+                for (var i = 0; i < problem[0].suggestions.length; i++) {
+                    items.push({ label: problem[0].suggestions[i], description: "Replace [" + word + "] with [" + problem[0].suggestions[i] + "]" });
+                }
+            } else {
+                items.push({ label: null, description: "No suggestions available sorry..." });
+            }
+            
+        } else {
+            items.push({ label: null, description: "No suggestions available sorry..." });
+        }
+    items.push({lable: "IGNORE LIST", decription:"Add [" + word + "] to ignore list"});
+
+    var pr = vscode.window.showQuickPick(items);
+    pr.then(function(selection) {
+       if (selection.lable === "IGNORE LIST") {
             settings.ignoreWordsList.push(word);
             updateSettings();
             createDiagnostic(vscode.window.activeTextEditor.document);
-       }
+       }else {
+                if (selection.label !== null) {
+                    e.edit(function (edit) {
+                        edit.replace(wordRange, selection.label);
+                    });
+                }
+            }
     });
 }
 
@@ -78,7 +142,7 @@ function readSettings() {
                                 "version": "0.1.0", \
                                 "language": ["ru","en"], \
                                 "ignoreWordsList": [], \
-                                "languageIDs": ["markdown","text"],\
+                                "languageIDs": ["markdown","plaintext"],\
                                 "ignoreRegExp": []\
                               }');
         }

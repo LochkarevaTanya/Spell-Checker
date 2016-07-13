@@ -24,13 +24,22 @@
     "commands": [
       {
         "command": "extension.checkText",
-        "title": "Spelling Checker (RU,EN)"
+        "title": "Spell Checker (RU,EN)"
+      },
+      {
+        "command": "Spell.suggestionsFix",
+				"title": "Spell Checker: Suggestions fix"
       }
+
     ],
     "keybindings": [
       {
         "command": "extension.checkText",
         "key": "Alt+Shift+A"
+      },
+      {
+        "command": "Spell.suggestionsFix",
+				"key": "Alt+."
       }
     ]
   },
