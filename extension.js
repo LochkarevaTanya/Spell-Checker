@@ -10,12 +10,13 @@ var settingPath = "/.vscode/spell.json";
 var CONFIGFILE;
 var problems = new Array();
 
-function activate(context) {
+var Doc = vscode.window.activeTextEditor.document;
 
+function activate(context) {
     CONFIGFILE = context.extensionPath + settingPath;
     settings = readSettings();
     var disposable = vscode.commands.registerCommand('extension.checkText', function () {
-        createDiagnostic(vscode.window.activeTextEditor.document);
+        createDiagnostic();
     });
     var disposable1 = vscode.commands.registerCommand('Spell.suggestionsFix', function () {
         suggestFix();
@@ -29,16 +30,16 @@ function deactivate() {
 }
 exports.deactivate = deactivate;
 
-function spellcheckDocument(text,cb){
-   
+function spellcheckDocument(text,cb){   
     yaspeller.checkText(text, function(err, docProblems){
         if (docProblems != null) {
             for(var i=0; i<docProblems.length; i++){
+                DeleteRegExp(docProblems);
                 if (settings.ignoreWordsList.indexOf(docProblems[i].word) === -1) {
                     var problem = docProblems[i];
-                    var activeEditor = vscode.window.activeTextEditor;
-                    var startPos = activeEditor.document.positionAt(problem.pos);
-                    var endPos = activeEditor.document.positionAt(problem.len + problem.pos);
+                    //var activeEditor = vscode.window.activeTextEditor;
+                    var startPos = Doc.positionAt(problem.pos);
+                    var endPos = Doc.positionAt(problem.len + problem.pos);
                     var rng = new vscode.Range(startPos.line,startPos.character,endPos.line,endPos.character);
                     
                     problems.push({
@@ -61,37 +62,66 @@ function spellcheckDocument(text,cb){
 }
 
 
-function createDiagnostic(document)
+function createDiagnostic()
 {
         var spellingErrors = vscode.languages.createDiagnosticCollection("Spelling");
         var diagnostics = new Array();
-        var docToCheck = document.getText();
-
+        var docToCheck = Doc.getText();
+        
         problems = [];
 
-        if (settings.languageIDs.indexOf(document.languageId) !== -1) {
+        if (settings.languageIDs.indexOf(Doc.languageId) !== -1) {
             spellcheckDocument(docToCheck, function (problems) {
             for (var x = 0; x < problems.length; x++) {
                 var problem = problems[x];
                 var lineRange = new vscode.Range(problem.startLine, problem.startChar, problem.endLine, problem.endChar);
-                var loc = new vscode.Location(document.uri, lineRange);
+                var loc = new vscode.Location(Doc.uri, lineRange);
 
                 var diag = new vscode.Diagnostic(lineRange, problem.message, vscode.DiagnosticSeverity.Warning);
                 diagnostics.push(diag);
             }
-            spellingErrors.set(document.uri, diagnostics);
+            spellingErrors.set(Doc.uri, diagnostics);
         });
     }
-
-
 }
+
+function DeleteRegExp(docProblems) {
+    var Pattern = GetPatterns(Doc.getText());
+}
+
+function GetPatterns(content) {
+    var _match;
+    var expressions = settings.ignoreRegExp;
+    var ARng = new Array();  
+
+    for (var x = 0; x < expressions.length; x++) {
+        // Convert the JSON of regExp Strings into a real RegExp
+        var flags = expressions[x].replace(/.*\/([gimy]*)$/, '$1');
+        var pattern = expressions[x].replace(new RegExp('^/(.*?)/' + flags + '$'), '$1');
+        pattern = pattern.replace(/\\\\/g, "\\");
+        var regex = new RegExp(pattern, flags);
+        _match = content.match(regex);
+        if (_match !== null) {
+            // look for a multi line match and build enough lines into the replacement
+            for (var i = 0; i < _match.length; i++) {
+                var StartP = content.indexOf(_match[i]);
+                var EndP = _match[i].length;
+                var sp = Doc.positionAt(StartP);
+                var ep = Doc.positionAt(StartP + EndP);
+                var Rng = new vscode.Range(sp.line,sp.character,ep.line,ep.character);
+                ARng.push(Rng);
+            }
+        }
+    }
+    return ARng;
+}
+
 function suggestFix() {
     var items = new Array();
     var e = vscode.window.activeTextEditor;
-    var d = e.document;
     var sel = e.selection;
-    var wordRange = d.getWordRangeAtPosition(sel.active);
-    var word = d.getText(wordRange);
+    var wordRange = Doc.getWordRangeAtPosition(sel.active);
+    var word = Doc.getText(wordRange);
 
     var problem = problems.filter(function (obj) {
             return obj.error === word;
