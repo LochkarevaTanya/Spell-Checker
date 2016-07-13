@@ -34,14 +34,13 @@ function spellcheckDocument(text,cb){
     yaspeller.checkText(text, function(err, docProblems){
         if (docProblems != null) {
             for(var i=0; i<docProblems.length; i++){
-                DeleteRegExp(docProblems);
                 if (settings.ignoreWordsList.indexOf(docProblems[i].word) === -1) {
+
                     var problem = docProblems[i];
-                    //var activeEditor = vscode.window.activeTextEditor;
                     var startPos = Doc.positionAt(problem.pos);
                     var endPos = Doc.positionAt(problem.len + problem.pos);
                     var rng = new vscode.Range(startPos.line,startPos.character,endPos.line,endPos.character);
-                    
+                    DeleteRegExp(rng);
                     problems.push({
                         error: problem.word,
                         startLine: startPos.line,
@@ -85,8 +84,14 @@ function createDiagnostic()
     }
 }
 
-function DeleteRegExp(docProblems) {
-    var Pattern = GetPatterns(Doc.getText());
+function DeleteRegExp(rng) {
+    //var Pattern = GetPatterns(Doc.getText());
+    //var limitingRange = document.createRange();
+    //for (var i = 0; i < Pattern.length; i++) {
+    //var per = Pattern[i];
+    //var StartResult = limitingRange.compareBoundaryPoints;
+    //var EndResult = Pattern[i].compareBoundaryPoints(Pattern[i].END_TO_END, rng);
+    }
 }
 
 function GetPatterns(content) {
