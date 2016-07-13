@@ -97,7 +97,6 @@ function suggestFix() {
             return obj.error === word;
         });
           
-    items.push({lable: "IGNORE LIST" , decription:"Add [" + word + "] to ignore list"});
     if (problem.length !== 0) {
             if (problem[0].suggestions.length > 0) {
             
@@ -111,6 +110,8 @@ function suggestFix() {
         } else {
             items.push({ label: null, description: "No suggestions available sorry..." });
         }
+    items.push({lable: "IGNORE LIST" , decription:"Add [" + word + "] to ignore list"});
+    
     var pr = vscode.window.showQuickPick(items);
     pr.then(function(selection) {
        if (selection.lable === "IGNORE LIST") {
