@@ -3,7 +3,6 @@
 var vscode = require('vscode');
 var yaspeller = require('yandex-speller');
 var fs = require('fs');
-var path = require('path');
 
 var settings;
 var settingPath = "/.vscode/spell.json";
@@ -13,7 +12,7 @@ var problems = new Array();
 var Doc = vscode.window.activeTextEditor.document;
 
 function activate(context) {
-    CONFIGFILE = context.extensionPath + settingPath;
+    CONFIGFILE = vscode.workspace.rootPath + settingPath;
     settings = readSettings();
     var disposable = vscode.commands.registerCommand('extension.checkText', function () {
         createDiagnostic();
@@ -40,16 +39,19 @@ function spellcheckDocument(text,cb){
                     var startPos = Doc.positionAt(problem.pos);
                     var endPos = Doc.positionAt(problem.len + problem.pos);
                     var rng = new vscode.Range(startPos.line,startPos.character,endPos.line,endPos.character);
-                    DeleteRegExp(rng);
-                    problems.push({
-                        error: problem.word,
-                        startLine: startPos.line,
-                        startChar: startPos.character,
-                        endLine: endPos.line,
-                        endChar: endPos.character,
-                        message:  " [" + problem.word + "] - suggest [" + problem.s + "]",
-                        suggestions: problem.s
-                    });
+                    var check = DeleteRegExp(startPos, endPos);
+                    if (check != 1)
+                    {
+                        problems.push({
+                            error: problem.word,
+                            startLine: startPos.line,
+                            startChar: startPos.character,
+                            endLine: endPos.line,
+                            endChar: endPos.character,
+                            message:  " [" + problem.word + "] - suggest [" + problem.s + "]",
+                            suggestions: problem.s
+                        });
+                    }
                 }
             }
             cb(problems);
@@ -84,14 +86,17 @@ function createDiagnostic()
     }
 }
 
-function DeleteRegExp(rng) {
-    //var Pattern = GetPatterns(Doc.getText());
-    //var limitingRange = document.createRange();
-    //for (var i = 0; i < Pattern.length; i++) {
-    //var per = Pattern[i];
-    //var StartResult = limitingRange.compareBoundaryPoints;
-    //var EndResult = Pattern[i].compareBoundaryPoints(Pattern[i].END_TO_END, rng);
-    //}
+function DeleteRegExp(start, end) {
+    var Pattern = GetPatterns(Doc.getText());
+    for (var i = 0; i < Pattern.length; i++) {
+        var per = Pattern[i];
+        if (per[0].line === start.line) {
+            if (per[0]._character <= start.character && per[1]._character >= end.character) {
+                return 1;
+            }
+        }
+    }
+    return 0;
 }
 
 function GetPatterns(content) {
@@ -113,7 +118,9 @@ function GetPatterns(content) {
                 var EndP = _match[i].length;
                 var sp = Doc.positionAt(StartP);
                 var ep = Doc.positionAt(StartP + EndP);
-                var Rng = new vscode.Range(sp.line,sp.character,ep.line,ep.character);
+                var Rng = new Array();
+                Rng.push(sp);
+                Rng.push(ep);            
                 ARng.push(Rng);
             }
         }
@@ -152,11 +159,12 @@ function suggestFix() {
        if (selection.lable === "IGNORE LIST") {
             settings.ignoreWordsList.push(word);
             updateSettings();
-            createDiagnostic(vscode.window.activeTextEditor.document);
+            createDiagnostic();
        }else {
                 if (selection.label !== null) {
                     e.edit(function (edit) {
                         edit.replace(wordRange, selection.label);
+                        createDiagnostic();
                     });
                 }
             }
