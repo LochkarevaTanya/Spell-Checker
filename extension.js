@@ -183,7 +183,7 @@ function readSettings() {
                                 "language": ["ru","en"], \
                                 "ignoreWordsList": [], \
                                 "languageIDs": ["markdown","plaintext"],\
-                                "ignoreRegExp": []\
+                                "ignoreRegExp": ["/`(kb.*?)`/g","/(http\\\\S*)/gm","/\\\\(.*.png\\\\)/g","/\\\\(.*.gif\\\\)/g","/\\\\(.*.md\\\\)/g","/\\\\(.*.jpg\\\\)/g","/^((`{3}\\\\s*)(\\\\w+)?(\\\\s*([\\\\w\\\\W]+?)\\\\n*)\\\\2)\\\\n*(?:[^\\\\S\\\\w\\\\s]|$)/gm"]\
                               }');
         }
 

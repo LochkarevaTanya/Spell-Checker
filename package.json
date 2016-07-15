@@ -3,7 +3,7 @@
     "displayName": "Spelling Checker (RU,EN)",
     "description": "",
     "icon": "images/icon1.png",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "publisher": "JuliaBay",
     "engines": {
         "vscode": "^1.0.0"
