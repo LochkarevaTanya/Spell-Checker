@@ -9,13 +9,11 @@ var settingPath = "/.vscode/spell.json";
 var CONFIGFILE;
 var problems = new Array();
 
-var Doc = vscode.window.activeTextEditor.document;
-
 function activate(context) {
     CONFIGFILE = vscode.workspace.rootPath + settingPath;
     settings = readSettings();
     var disposable = vscode.commands.registerCommand('extension.checkText', function () {
-        createDiagnostic();
+        createDiagnostic(vscode.window.activeTextEditor.document);
     });
     var disposable1 = vscode.commands.registerCommand('Spell.suggestionsFix', function () {
         suggestFix();
@@ -36,10 +34,11 @@ function spellcheckDocument(text,cb){
                 if (settings.ignoreWordsList.indexOf(docProblems[i].word) === -1) {
 
                     var problem = docProblems[i];
-                    var startPos = Doc.positionAt(problem.pos);
-                    var endPos = Doc.positionAt(problem.len + problem.pos);
+                    var document = vscode.window.activeTextEditor.document;
+                    var startPos = document.positionAt(problem.pos);
+                    var endPos = document.positionAt(problem.len + problem.pos);
                     var rng = new vscode.Range(startPos.line,startPos.character,endPos.line,endPos.character);
-                    var check = DeleteRegExp(startPos, endPos);
+                    var check = DeleteRegExp(startPos, endPos, document);
                     if (check != 1)
                     {
                         problems.push({
@@ -55,39 +54,37 @@ function spellcheckDocument(text,cb){
                 }
             }
             cb(problems);
-        }
-        if (docProblems.length === 0){
-            vscode.window.showInformationMessage("No errors");
-        }      
+        }    
     }, {lang: settings.language});
 }
 
 
-function createDiagnostic()
+function createDiagnostic(document)
 {
         var spellingErrors = vscode.languages.createDiagnosticCollection("Spelling");
         var diagnostics = new Array();
-        var docToCheck = Doc.getText();
+        var docToCheck = document.getText();
         
         problems = [];
 
-        if (settings.languageIDs.indexOf(Doc.languageId) !== -1) {
+        if (settings.languageIDs.indexOf(document.languageId) !== -1) {
             spellcheckDocument(docToCheck, function (problems) {
             for (var x = 0; x < problems.length; x++) {
                 var problem = problems[x];
                 var lineRange = new vscode.Range(problem.startLine, problem.startChar, problem.endLine, problem.endChar);
-                var loc = new vscode.Location(Doc.uri, lineRange);
+                var loc = new vscode.Location(document.uri, lineRange);
 
                 var diag = new vscode.Diagnostic(lineRange, problem.message, vscode.DiagnosticSeverity.Warning);
                 diagnostics.push(diag);
             }
-            spellingErrors.set(Doc.uri, diagnostics);
+            spellingErrors.set(document.uri, diagnostics);
         });
     }
 }
 
-function DeleteRegExp(start, end) {
-    var Pattern = GetPatterns(Doc.getText());
+function DeleteRegExp(start, end, document) {
+
+    var Pattern = GetPatterns(document);
     for (var i = 0; i < Pattern.length; i++) {
         var per = Pattern[i];
         if (per[0].line === start.line) {
@@ -99,7 +96,8 @@ function DeleteRegExp(start, end) {
     return 0;
 }
 
-function GetPatterns(content) {
+function GetPatterns(document) {
+     var content = document.getText();
     var _match;
     var expressions = settings.ignoreRegExp;
     var ARng = new Array();  
@@ -116,8 +114,8 @@ function GetPatterns(content) {
             for (var i = 0; i < _match.length; i++) {
                 var StartP = content.indexOf(_match[i]);
                 var EndP = _match[i].length;
-                var sp = Doc.positionAt(StartP);
-                var ep = Doc.positionAt(StartP + EndP);
+                var sp = document.positionAt(StartP);
+                var ep = document.positionAt(StartP + EndP);
                 var Rng = new Array();
                 Rng.push(sp);
                 Rng.push(ep);            
@@ -132,8 +130,9 @@ function suggestFix() {
     var items = new Array();
     var e = vscode.window.activeTextEditor;
     var sel = e.selection;
-    var wordRange = Doc.getWordRangeAtPosition(sel.active);
-    var word = Doc.getText(wordRange);
+    var doc=e.document;
+    var wordRange = doc.getWordRangeAtPosition(sel.active);
+    var word = doc.getText(wordRange);
 
     var problem = problems.filter(function (obj) {
             return obj.error === word;
@@ -159,7 +158,7 @@ function suggestFix() {
        if (selection.lable === "IGNORE LIST") {
             settings.ignoreWordsList.push(word);
             updateSettings();
-            createDiagnostic();
+            createDiagnostic(doc);
        }else {
                 if (selection.label !== null) {
                     e.edit(function (edit) {
