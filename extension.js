@@ -187,8 +187,8 @@ function readSettings() {
         }
 
         //gracefully handle new fields
-        if (cfg.languageIDs === undefined) cfg.languageIDs = ["markdown"];
-        if (cfg.language === undefined) cfg.language = ["ru"];
+        if (cfg.languageIDs === undefined) cfg.languageIDs = ["markdown","plaintext"];
+        if (cfg.language === undefined) cfg.language = ["ru","en"];
         if (cfg.ignoreRegExp === undefined) cfg.ignoreRegExp = [];
 
         return cfg;
