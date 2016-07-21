@@ -189,7 +189,7 @@ function readSettings() {
         //gracefully handle new fields
         if (cfg.languageIDs === undefined) cfg.languageIDs = ["markdown","plaintext"];
         if (cfg.language === undefined) cfg.language = ["ru","en"];
-        if (cfg.ignoreRegExp === undefined) cfg.ignoreRegExp = [];
+        if (cfg.ignoreRegExp === undefined) cfg.ignoreRegExp = ["/`(kb.*?)`/g","/(http\\\\S*)/gm","/\\\\(.*.png\\\\)/g","/\\\\(.*.gif\\\\)/g","/\\\\(.*.md\\\\)/g","/\\\\(.*.jpg\\\\)/g","/^((`{3}\\\\s*)(\\\\w+)?(\\\\s*([\\\\w\\\\W]+?)\\\\n*)\\\\2)\\\\n*(?:[^\\\\S\\\\w\\\\s]|$)/gm"];
 
         return cfg;
     }
