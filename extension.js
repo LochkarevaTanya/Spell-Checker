@@ -203,5 +203,5 @@ function readSettings() {
 }
 
 function updateSettings() {
-    fs.writeFileSync(CONFIGFILE, JSON.stringify(settings));
+    fs.writeFileSync(CONFIGFILE, JSON.stringify(settings,null, 4));
 }
